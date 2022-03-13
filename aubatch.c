@@ -2,12 +2,32 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include "dispatcher.h"
+#include "utilities.h"
 
 #define PLCY 		0
 #define NUM_JOBS 	1
 #define PRIORITIES	2
 #define MIN_CPU_TM	3
 #define MAX_CPU_TM	4
+
+
+void print_help(){
+
+	printf("run <job> <time> <pri>: submit a job named <job>\n");
+	printf("\t\texec time is <time>,\n");
+	printf("\t\tpriority is <pri>\n");
+
+	printf("list: display the job status\n");
+	printf("fcfs: change the scheduling policy to FCFS\n");
+	printf("sjf: change the scheduling policy to SJF\n");
+	printf("priority: change the scheduling policy to priority\n");
+	printf("test <benchmark> <policy> <num_of_jobs> <priority_levels>\n");
+	printf("\t\tmin_cpu_time> <max_cpu_time>\n");
+	printf("quit: exit aubatch\n\n");
+	
+	return;
+}
 
 /*
  * args :
@@ -56,7 +76,66 @@ int main(int argc, char **argv){
 	strcpy(min_cpu_time	, argv[4]);
 	strcpy(max_cpu_time	, argv[5]);
 
+	//create threads
+	pthread_t dispatcher;
 
+	long arg=2;
+	int res=pthread_create(&dispatcher, NULL, *dispatch, (void*) arg);
+	//dispatch(2);
+
+
+	//wait for threads to finish
+	pthread_join(dispatcher, NULL);
+
+	//main loop
+	char input[30];
+	printf("\nType \'help\' to show list of commands\n\n");
+	while(1){
+		printf("aubatch> ");
+		//prompt for input
+		
+		//read input
+		//scanf("%s\n", input);
+		fgets(input, 30, stdin);
+
+		//check if help is entered
+		if (strcmp(input, "help\n") == 0){
+			print_help();
+		}
+		//check if list is entered
+		else if (strcmp(input, "list\n") == 0){
+			//TODO display job status
+			printf("list\n");
+		}
+		//check if fcfs is entered
+		else if (strcmp(input, "fcfs\n") == 0){
+			//TODO change policy to fcfs
+			printf("fcfs\n");
+		}
+		//check if sjf is entered
+		else if (strcmp(input, "sjf\n") == 0){
+			//TODO change policy to sjf
+			printf("sjf\n");
+		}
+		//check if priority is entered
+		else if (strcmp(input, "priority\n") == 0){
+			//TODO change policy to priority
+			printf("priority\n");
+		}
+		//check if test is entered
+		else if (strstr(input, "test")){
+			//TODO run test?
+			printf("test\n");
+		}
+		//TODO make a more graceful exit routine
+		else if (strcmp(input, "quit\n") == 0){
+			printf("\nexiting aubatch ...\n\n");
+			break;
+		}
+	}
+
+	
+	
 	//free args
 	free(policy);
 	free(num_jobs);
