@@ -11,23 +11,8 @@
 #define MIN_CPU_TM	3
 #define MAX_CPU_TM	4
 
-
-void print_help(){
-
-	printf("run <job> <time> <pri>: submit a job named <job>\n");
-	printf("\t\texec time is <time>,\n");
-	printf("\t\tpriority is <pri>\n");
-
-	printf("list: display the job status\n");
-	printf("fcfs: change the scheduling policy to FCFS\n");
-	printf("sjf: change the scheduling policy to SJF\n");
-	printf("priority: change the scheduling policy to priority\n");
-	printf("test <benchmark> <policy> <num_of_jobs> <priority_levels>\n");
-	printf("\t\tmin_cpu_time> <max_cpu_time>\n");
-	printf("quit: exit aubatch\n\n");
-	
-	return;
-}
+void print_help();
+int get_case(char *input, int len);
 
 /*
  * args :
@@ -83,12 +68,13 @@ int main(int argc, char **argv){
 	int res=pthread_create(&dispatcher, NULL, *dispatch, (void*) arg);
 	//dispatch(2);
 
-
 	//wait for threads to finish
 	pthread_join(dispatcher, NULL);
 
 	//main loop
-	char input[30];
+	int result;
+	int input_len=50;
+	char input[input_len];
 	printf("\nType \'help\' to show list of commands\n\n");
 	while(1){
 		printf("aubatch> ");
@@ -98,39 +84,32 @@ int main(int argc, char **argv){
 		//scanf("%s\n", input);
 		fgets(input, 30, stdin);
 
-		//check if help is entered
-		if (strcmp(input, "help\n") == 0){
-			print_help();
-		}
-		//check if list is entered
-		else if (strcmp(input, "list\n") == 0){
-			//TODO display job status
-			printf("list\n");
-		}
-		//check if fcfs is entered
-		else if (strcmp(input, "fcfs\n") == 0){
-			//TODO change policy to fcfs
-			printf("fcfs\n");
-		}
-		//check if sjf is entered
-		else if (strcmp(input, "sjf\n") == 0){
-			//TODO change policy to sjf
-			printf("sjf\n");
-		}
-		//check if priority is entered
-		else if (strcmp(input, "priority\n") == 0){
-			//TODO change policy to priority
-			printf("priority\n");
-		}
-		//check if test is entered
-		else if (strstr(input, "test")){
-			//TODO run test?
-			printf("test\n");
-		}
-		//TODO make a more graceful exit routine
-		else if (strcmp(input, "quit\n") == 0){
-			printf("\nexiting aubatch ...\n\n");
-			break;
+		result=get_case(input, input_len);
+
+		switch (result){
+			case 0:
+				print_help();
+				break;
+			case 1:
+				printf("list\n");
+				break;
+			case 2:
+				printf("fcfs\n");
+				break;
+			case 3:
+				printf("sjf\n");
+				break;
+			case 4:
+				printf("priorty\n");
+				break;
+			case 5:
+				printf("test\n");
+				break;
+			case 6:
+				printf("\nexiting aubatch ...\n\n");
+				return 0;
+			default:
+				break;
 		}
 	}
 
@@ -145,3 +124,57 @@ int main(int argc, char **argv){
 	
 	return 0;
 }
+
+void print_help(){
+
+	printf("run <job> <time> <pri>: submit a job named <job>\n");
+	printf("\t\texec time is <time>,\n");
+	printf("\t\tpriority is <pri>\n");
+
+	printf("list: display the job status\n");
+	printf("fcfs: change the scheduling policy to FCFS\n");
+	printf("sjf: change the scheduling policy to SJF\n");
+	printf("priority: change the scheduling policy to priority\n");
+	printf("test <benchmark> <policy> <num_of_jobs> <priority_levels>\n");
+	printf("\t\tmin_cpu_time> <max_cpu_time>\n");
+	printf("quit: exit aubatch\n\n");
+	
+	return;
+}
+int get_case(char *input, int len){
+
+		//check if help is entered
+		if (strcmp(input, "help\n") == 0){
+			return 0;
+		}
+		//check if list is entered
+		else if (strcmp(input, "list\n") == 0){
+			return 1;
+		}
+		//check if fcfs is entered
+		else if (strcmp(input, "fcfs\n") == 0){
+			return 2;
+		}
+		//check if sjf is entered
+		else if (strcmp(input, "sjf\n") == 0){
+			return 3;
+		}
+		//check if priority is entered
+		else if (strcmp(input, "priority\n") == 0){
+			return 4;
+		}
+		//check if test is entered
+		else if (strstr(input, "test")){
+			return 5;
+		}
+		//TODO make a more graceful exit routine
+		else if (strcmp(input, "quit\n") == 0){
+			return 6;
+		}
+		else{
+			return -1;
+		}
+	
+}
+
+
