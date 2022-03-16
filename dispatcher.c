@@ -8,8 +8,6 @@
 
 #include "dispatcher.h"
 
-extern pthread_mutex_t mutex;
-
 void *dispatch(void *time){
 
 	char *args[3];
