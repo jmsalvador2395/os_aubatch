@@ -5,7 +5,6 @@ bj_outputs=batch_job.o
 
 
 aubatch: $(aub_outputs) $(bj_outputs)
-	#$(CC) -o aubatch aubatch.o dispatcher.o utilities.o job_queue.o $(flags)
 	$(CC) -o aubatch $(aub_outputs) $(flags)
 	$(CC) -o batch_job $(bj_outputs)
 
