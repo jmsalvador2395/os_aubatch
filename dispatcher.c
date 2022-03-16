@@ -1,5 +1,6 @@
 #include <stdio.h> 
 #include <stdlib.h> 
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h> 
@@ -7,7 +8,10 @@
 
 #include "dispatcher.h"
 
+extern pthread_mutex_t mutex;
+
 void *dispatch(void *time){
+
 	char *args[3];
 	args[0]="batch_job";
 	args[1]="2";
@@ -38,6 +42,5 @@ void *dispatch(void *time){
 
 	int status;
 	wait(&status);
-
 	
 }
