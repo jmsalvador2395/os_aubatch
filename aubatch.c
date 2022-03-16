@@ -143,37 +143,46 @@ void print_help(){
 }
 int get_case(char *input, int len){
 
-		//check if help is entered
-		if (strcmp(input, "help\n") == 0){
-			return 0;
-		}
-		//check if list is entered
-		else if (strcmp(input, "list\n") == 0){
-			return 1;
-		}
-		//check if fcfs is entered
-		else if (strcmp(input, "fcfs\n") == 0){
-			return 2;
-		}
-		//check if sjf is entered
-		else if (strcmp(input, "sjf\n") == 0){
-			return 3;
-		}
-		//check if priority is entered
-		else if (strcmp(input, "priority\n") == 0){
-			return 4;
-		}
-		//check if test is entered
-		else if (strstr(input, "test")){
-			return 5;
-		}
-		//TODO make a more graceful exit routine
-		else if (strcmp(input, "quit\n") == 0){
-			return 6;
-		}
-		else{
-			return -1;
-		}
+	char *command[7];
+	command[0]="help\n";
+	command[1]="list\n";
+	command[2]="fcfs\n";
+	command[3]="sjf\n";
+	command[4]="priority\n";
+	command[5]="test\n";
+	command[6]="quit\n";
+
+	//check if help is entered
+	if (strcmp(input, "help\n") == 0){
+		return 0;
+	}
+	//check if list is entered
+	else if (strcmp(input, "list\n") == 0){
+		return 1;
+	}
+	//check if fcfs is entered
+	else if (strcmp(input, "fcfs\n") == 0){
+		return 2;
+	}
+	//check if sjf is entered
+	else if (strcmp(input, "sjf\n") == 0){
+		return 3;
+	}
+	//check if priority is entered
+	else if (strcmp(input, "priority\n") == 0){
+		return 4;
+	}
+	//check if test is entered
+	else if (strstr(input, "test")){
+		return 5;
+	}
+	//TODO make a more graceful exit routine
+	else if (strcmp(input, "quit\n") == 0){
+		return 6;
+	}
+	else{
+		return -1;
+	}
 	
 }
 
