@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+
 #include "dispatcher.h"
 #include "utilities.h"
 
@@ -11,8 +12,29 @@
 #define MIN_CPU_TM	3
 #define MAX_CPU_TM	4
 
+
+pthread_mutex_t policy_lock;
+pthread_mutex_t mutex;
+
+int job_queue;
+char *policy;
+
 void print_help();
 int get_case(char *input, int len);
+
+void *dispatch_thread(void *args){
+	//pthread_mutex_lock(&mutex);
+	printf("acquired lock\n");
+	//dispatch(args);
+	int i;
+	for (i=0; i < 100; i++)
+		printf("dispatcher %d\n", i);
+	//pthread_mutex_unlock(&mutex);
+	printf("released lock\n");
+}
+void scheduler_thread(void *args){
+
+}
 
 /*
  * args :
@@ -23,6 +45,16 @@ int get_case(char *input, int len);
  * <max_CPU_time>
  */
 int main(int argc, char **argv){
+
+	if (pthread_mutex_init(&mutex, NULL) != 0){
+		fprintf(stderr, "\nmutex init failed\n");
+		return 1;
+	}
+
+	if (pthread_mutex_init(&policy_lock, NULL) != 0){
+		fprintf(stderr, "\npolicy_lock init failed\n");
+		return 1;
+	}
 
 	//return error if not enough args
 	if(argc < 6){
@@ -65,7 +97,7 @@ int main(int argc, char **argv){
 	pthread_t dispatcher;
 
 	long arg=2;
-	int res=pthread_create(&dispatcher, NULL, *dispatch, (void*) arg);
+	int res=pthread_create(&dispatcher, NULL, *dispatch_thread, (void*) arg);
 	//dispatch(2);
 
 	//wait for threads to finish
@@ -87,26 +119,42 @@ int main(int argc, char **argv){
 		result=get_case(input, input_len);
 
 		switch (result){
+			//print help
 			case 0:
 				print_help();
 				break;
+			//list
 			case 1:
 				printf("list\n");
 				break;
+			//fcfs
 			case 2:
-				printf("fcfs\n");
+				pthread_mutex_lock(&mutex);
+				policy="fcfs";
+				pthread_mutex_unlock(&mutex);
+				printf("\n**policy changed to fcfs\n\n");
 				break;
+			//sjf
 			case 3:
-				printf("sjf\n");
+				pthread_mutex_lock(&mutex);
+				policy="sjf";
+				pthread_mutex_unlock(&mutex);
+				printf("\n**policy changed to sjf\n\n");
 				break;
+			//priority
 			case 4:
-				printf("priorty\n");
+				pthread_mutex_lock(&mutex);
+				policy="priority";
+				pthread_mutex_unlock(&mutex);
+				printf("\n**policy changed to priority\n\n");
 				break;
+			//test
 			case 5:
 				printf("test\n");
 				break;
+			//exit
 			case 6:
-				printf("\nexiting aubatch ...\n\n");
+				printf("\n**exiting aubatch ...\n\n");
 				return 0;
 			default:
 				break;
