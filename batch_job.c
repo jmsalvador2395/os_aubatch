@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 int main(int argc, char **argv){
 	printf("batch_job executing...\n");
@@ -11,8 +12,19 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	int time=atoi(argv[1]);
-	sleep(time);
+	//parse int
+	int diff=atoi(argv[1]);
+
+	//set start time
+	time_t start, end;
+	start=time(NULL);
+
+	//set end time
+	end=start+diff;
+	
+	//loop for [diff] seconds
+	while(time(NULL) != end);
+
 	printf("batch_job exiting...\n");
 
 	return 0;
