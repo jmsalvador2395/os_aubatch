@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <time.h>
 
 #include "dispatcher.h"
 #include "utilities.h"
+#include "job_queue.h"
 
 #define PLCY 		0
 #define NUM_JOBS 	1
@@ -13,10 +15,10 @@
 #define MAX_CPU_TM	4
 
 
+
 pthread_mutex_t policy_lock;
 pthread_mutex_t mutex;
 
-int job_queue;
 char *policy;
 
 void print_help();
@@ -27,13 +29,14 @@ void *dispatch_thread(void *args){
 	printf("acquired lock\n");
 	//dispatch(args);
 	int i;
+	/*
 	for (i=0; i < 100; i++)
 		printf("dispatcher %d\n", i);
+	*/
 	//pthread_mutex_unlock(&mutex);
 	printf("released lock\n");
 }
-void scheduler_thread(void *args){
-
+void *scheduler_thread(void *args){
 }
 
 /*
@@ -46,6 +49,14 @@ void scheduler_thread(void *args){
  */
 int main(int argc, char **argv){
 
+	/*
+	create_job("jimmy", 0, 0);
+	struct job *my_job;
+	my_job=pop_job();
+	*/
+
+
+
 	if (pthread_mutex_init(&mutex, NULL) != 0){
 		fprintf(stderr, "\nmutex init failed\n");
 		return 1;
@@ -55,43 +66,6 @@ int main(int argc, char **argv){
 		fprintf(stderr, "\npolicy_lock init failed\n");
 		return 1;
 	}
-
-	//return error if not enough args
-	if(argc < 6){
-		fprintf(stderr, "\nnot enough arguements. run as:\n");
-		fprintf(stderr, "./aubatch <policy> <num_jobs> <priority_levels> <min_cpu_time> <max_cpu_time>\n\n");
-		return 1;
-	}
-
-	//args
-	char *policy;
-	char *num_jobs;
-	char *priority_lvs;
-	char *min_cpu_time;
-	char *max_cpu_time;
-
-
-	//create array of lengths of the args
-	int i;
-	int lens[5]={0};
-	int len;
-	for(i=0; i<5; i++){
-		lens[i]=strlen(argv[i+1]);
-	}
-
-	//allocate memory for the arguements
-	policy		 =malloc(sizeof(char)*lens[0]+1);
-	num_jobs	 =malloc(sizeof(char)*lens[1]+1);
-	priority_lvs =malloc(sizeof(char)*lens[2]+1);
-	min_cpu_time =malloc(sizeof(char)*lens[3]+1);
-	max_cpu_time =malloc(sizeof(char)*lens[4]+1);
-
-	//copy args over
-	strcpy(policy		, argv[1]);
-	strcpy(num_jobs		, argv[2]);
-	strcpy(priority_lvs	, argv[3]);
-	strcpy(min_cpu_time	, argv[4]);
-	strcpy(max_cpu_time	, argv[5]);
 
 	//create threads
 	pthread_t dispatcher;
@@ -129,24 +103,27 @@ int main(int argc, char **argv){
 				break;
 			//fcfs
 			case 2:
-				pthread_mutex_lock(&mutex);
+				pthread_mutex_lock(&policy_lock);
 				policy="fcfs";
-				pthread_mutex_unlock(&mutex);
-				printf("\n**policy changed to fcfs\n\n");
+				pthread_mutex_unlock(&policy_lock);
+				reschedule_jobs(policy);
+				printf("\n**policy changed to fcfs. job queue rescheduled\n\n");
 				break;
 			//sjf
 			case 3:
-				pthread_mutex_lock(&mutex);
+				pthread_mutex_lock(&policy_lock);
 				policy="sjf";
-				pthread_mutex_unlock(&mutex);
-				printf("\n**policy changed to sjf\n\n");
+				pthread_mutex_unlock(&policy_lock);
+				reschedule_jobs(policy);
+				printf("\n**policy changed to sjf. job queue rescheduled\n\n");
 				break;
 			//priority
 			case 4:
-				pthread_mutex_lock(&mutex);
+				pthread_mutex_lock(&policy_lock);
 				policy="priority";
-				pthread_mutex_unlock(&mutex);
-				printf("\n**policy changed to priority\n\n");
+				pthread_mutex_unlock(&policy_lock);
+				reschedule_jobs(policy);
+				printf("\n**policy changed to priority. job queue rescheduled\n\n");
 				break;
 			//test
 			case 5:
@@ -156,20 +133,14 @@ int main(int argc, char **argv){
 			case 6:
 				printf("\n**exiting aubatch ...\n\n");
 				return 0;
+			case 7:
+				printf("\n**run job ...\n\n");
+				break;
 			default:
 				break;
 		}
 	}
 
-	
-	
-	//free args
-	free(policy);
-	free(num_jobs);
-	free(priority_lvs);
-	free(min_cpu_time);
-	free(max_cpu_time);
-	
 	return 0;
 }
 
@@ -189,16 +160,11 @@ void print_help(){
 	
 	return;
 }
-int get_case(char *input, int len){
 
-	char *command[7];
-	command[0]="help\n";
-	command[1]="list\n";
-	command[2]="fcfs\n";
-	command[3]="sjf\n";
-	command[4]="priority\n";
-	command[5]="test\n";
-	command[6]="quit\n";
+int get_case(char *input, int len){
+	
+	int cmd=0;
+	char *commands[7]={"help\n", "list\n", "fcfs\n", "sjf\n", "priority\n", "test\n", "quit"};
 
 	//check if help is entered
 	if (strcmp(input, "help\n") == 0){
@@ -227,6 +193,9 @@ int get_case(char *input, int len){
 	//TODO make a more graceful exit routine
 	else if (strcmp(input, "quit\n") == 0){
 		return 6;
+	}
+	else if (strstr(input, "run")){
+		return 7;
 	}
 	else{
 		return -1;
