@@ -133,7 +133,7 @@ int main(int argc, char **argv){
 		
 		//read input
 		//scanf("%s\n", input);
-		fgets(input, 30, stdin);
+		fgets(input, input_len, stdin);
 
 		result=get_case(input, input_len);
 
