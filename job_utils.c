@@ -10,7 +10,9 @@
 
 
 int job_list_size=0;
-int job_queue_size=0;
+int qsize=0;
+int qhead=0;
+int qtail=0;
 
 //job queue
 struct job *jobq[QUEUE_LEN];
@@ -38,17 +40,47 @@ int createq_job(char *job_name, int exec_time, int priority){
 }
 
 int pushq_job(struct job *new_job){
+	if (qsize == QUEUE_LEN){
+		return 0;
+	}
+	if (qsize == 0){
+		jobq[qtail]=new_job;
+		qhead=qtail;
+	}
+	else{
+		qtail=(qtail+1)%QUEUE_LEN;
+		jobq[qtail]=new_job;
+	}
 
-	jobq[0]=new_job;
+	qsize++;
+	return 1;
 }
 
 
 /*
- * TODO
+ * returns job pointer.
+ * need to call free() once finished with popped job
  */
 struct job* popq_job(){
+	struct job *temp;
 
-	return jobq[0];
+	//return NULL if empty
+	if (qsize == 0){
+		temp=NULL;
+		return temp;
+	}
+
+	//retrieve pointer
+	temp=jobq[qhead];
+
+	//set index to NULL
+	jobq[qhead]=NULL;
+
+	//update queue parameters
+	qhead=(qhead+1)%QUEUE_LEN;
+	qsize--;
+
+	return temp;
 }
 
 /*
@@ -58,4 +90,54 @@ void reschedule_jobs(char *alg){
 
 	printf("rescheduling %s\n", alg);
 	return;
+}
+
+/*
+strcpy(new_job->job_name, job_name);
+new_job->exec_time=exec_time;
+new_job->priority=priority;
+new_job->arrival_time=time(NULL);
+new_job->status=0;
+*/
+
+
+void print_jobq(){
+	if (qsize == 0){
+		printf("No jobs to display\n");
+	}
+	else if (qsize == 1){
+		printf("\n%s\n", jobq[qhead]->job_name);
+	}
+	else{
+		int i=qhead;
+		printf("\n");
+		while (i != qtail){
+			printf("%s\n", jobq[qhead]->job_name);
+			i=(i+1)%QUEUE_LEN;
+		}
+		printf("%s\n", jobq[qtail]->job_name);
+		printf("\n");
+	}
+}
+
+/*
+ * frees the leftover memory in the job queue
+ */
+void free_jobq(){
+	int i=qhead;
+	if (qsize == 0){
+		return;
+	}
+	else if (qsize == 1){
+		free(jobq[qhead]);
+	}
+	else{
+		while (i != qtail){
+			free(jobq[i]);
+			i=(i+1)%QUEUE_LEN;
+			qsize--;
+		}
+		free(jobq[qtail]);
+		qsize--;
+	}
 }
