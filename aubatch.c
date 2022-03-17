@@ -6,7 +6,7 @@
 
 #include "dispatcher.h"
 #include "utilities.h"
-#include "job_queue.h"
+#include "job_utils.h"
 
 #define PLCY 		0
 #define NUM_JOBS 	1
@@ -17,65 +17,91 @@
 
 
 pthread_mutex_t policy_lock;
+pthread_mutex_t jq_lock;
 pthread_mutex_t mutex;
+
+pthread_cond_t jq_not_full;
+pthread_cond_t jq_not_empty;
+
+int terminate=0;
+int test=0;
 
 char *policy;
 
 void print_help();
 int get_case(char *input, int len);
 
-void *dispatch_thread(void *args){
-	//pthread_mutex_lock(&mutex);
-	printf("acquired lock\n");
-	//dispatch(args);
-	int i;
-	/*
-	for (i=0; i < 100; i++)
-		printf("dispatcher %d\n", i);
-	*/
-	//pthread_mutex_unlock(&mutex);
-	printf("released lock\n");
+/*
+ * pops the job at the top of the queue and executes
+ * states are collected when finished
+ */
+void *dispatch_thread(){
+	while(1){
+		pthread_mutex_lock(&jq_lock);
+
+		//wait for new job or termination request
+		while (test == 0 && !terminate){
+			pthread_cond_wait(&jq_not_empty, &jq_lock);
+		}
+		
+		//check for termination request
+		if (terminate){
+			pthread_cond_signal(&jq_not_full);
+			pthread_mutex_unlock(&jq_lock);
+			break;
+		}
+
+		test--;
+		//printf("dispatcher decremented\n");
+
+		//signal scheduler and release mutex
+		pthread_cond_signal(&jq_not_full);
+		pthread_mutex_unlock(&jq_lock);
+	}
+
 }
-void *scheduler_thread(void *args){
+void *scheduler_thread(){
+	while(1){
+		pthread_mutex_lock(&jq_lock);
+
+		//wait for job queue to have space
+		while (test == 10 && !terminate){
+			pthread_cond_wait(&jq_not_full, &jq_lock);
+		}
+
+		//check for termination request
+		if (terminate){
+			pthread_cond_signal(&jq_not_empty);
+			pthread_mutex_unlock(&jq_lock);
+			break;
+		}
+
+		test++;
+		//printf("scheduler incremented\n");
+
+		//signal dispatcher and release mutex
+		pthread_cond_signal(&jq_not_empty);
+		pthread_mutex_unlock(&jq_lock);
+	}
+
 }
 
-/*
- * args :
- * <policy>
- * <num_of_jobs>
- * <priority_levels>
- * <min_CPU_time>
- * <max_CPU_time>
- */
 int main(int argc, char **argv){
 
-	/*
-	create_job("jimmy", 0, 0);
-	struct job *my_job;
-	my_job=pop_job();
-	*/
-
-
-
-	if (pthread_mutex_init(&mutex, NULL) != 0){
+	//initialize mutexes
+	if (pthread_mutex_init(&jq_lock, NULL) != 0){
 		fprintf(stderr, "\nmutex init failed\n");
 		return 1;
 	}
-
 	if (pthread_mutex_init(&policy_lock, NULL) != 0){
 		fprintf(stderr, "\npolicy_lock init failed\n");
 		return 1;
 	}
 
-	//create threads
-	pthread_t dispatcher;
-
-	long arg=2;
-	int res=pthread_create(&dispatcher, NULL, *dispatch_thread, (void*) arg);
-	//dispatch(2);
-
-	//wait for threads to finish
-	pthread_join(dispatcher, NULL);
+	//create and execute threads
+	pthread_t dispatcher, scheduler;
+	int dispatch_res=pthread_create(&dispatcher, NULL, *dispatch_thread, NULL);
+	int scheduler_res=pthread_create(&scheduler, NULL, *scheduler_thread, NULL);
 
 	//main loop
 	int result;
@@ -132,6 +158,12 @@ int main(int argc, char **argv){
 			//exit
 			case 6:
 				printf("\n**exiting aubatch ...\n\n");
+				//wait for threads to finish
+				terminate=1;
+				pthread_cond_signal(&jq_not_empty);
+				pthread_cond_signal(&jq_not_full);
+				pthread_join(dispatcher, NULL);
+				pthread_join(scheduler, NULL);
 				return 0;
 			case 7:
 				printf("\n**run job ...\n\n");
@@ -146,26 +178,23 @@ int main(int argc, char **argv){
 
 void print_help(){
 
-	printf("run <job> <time> <pri>: submit a job named <job>\n");
-	printf("\t\texec time is <time>,\n");
-	printf("\t\tpriority is <pri>\n");
+	printf("\trun <job> <time> <pri>: submit a job named <job>\n");
+	printf("\t\t\t\texec time is <time>,\n");
+	printf("\t\t\t\tpriority is <pri>\n");
 
-	printf("list: display the job status\n");
-	printf("fcfs: change the scheduling policy to FCFS\n");
-	printf("sjf: change the scheduling policy to SJF\n");
-	printf("priority: change the scheduling policy to priority\n");
-	printf("test <benchmark> <policy> <num_of_jobs> <priority_levels>\n");
-	printf("\t\tmin_cpu_time> <max_cpu_time>\n");
-	printf("quit: exit aubatch\n\n");
+	printf("\tlist: display the job status\n");
+	printf("\tfcfs: change the scheduling policy to FCFS\n");
+	printf("\tsjf: change the scheduling policy to SJF\n");
+	printf("\tpriority: change the scheduling policy to priority\n");
+	printf("\ttest <benchmark> <policy> <num_of_jobs> <priority_levels>\n");
+	printf("\t\t<min_cpu_time> <max_cpu_time>\n");
+	printf("\tquit: exit aubatch\n\n");
 	
 	return;
 }
 
 int get_case(char *input, int len){
 	
-	int cmd=0;
-	char *commands[7]={"help\n", "list\n", "fcfs\n", "sjf\n", "priority\n", "test\n", "quit"};
-
 	//check if help is entered
 	if (strcmp(input, "help\n") == 0){
 		return 0;
