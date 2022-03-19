@@ -1,6 +1,6 @@
 flags = -lpthread -lm
 CC = gcc
-aub_outputs=aubatch.o dispatcher.o utilities.o job_utils.o
+aub_outputs=aubatch.o dispatcher.o utilities.o job_utils.o arg_parser.o
 bj_outputs=batch_job.o
 
 
@@ -22,6 +22,9 @@ utilities.o: utilities.c
 
 job_utils.o: job_utils.c
 	$(CC) -c job_utils.c $(flags)
+
+arg_parser.o: arg_parser.c
+	$(CC) -c arg_parser.c $(flags)
 
 clean: *.o
 	rm *.o
