@@ -7,35 +7,41 @@
 #include "dispatcher.h"
 #include "utilities.h"
 #include "job_utils.h"
+#include "arg_parser.h"
 
-#define PLCY 		0
-#define NUM_JOBS 	1
-#define PRIORITIES	2
-#define MIN_CPU_TM	3
-#define MAX_CPU_TM	4
+#define PLCY 			0
+#define NUM_JOBS 		1
+#define PRIORITIES		2
+#define MIN_CPU_TM		3
+#define MAX_CPU_TM		4
+#define NAME_LEN 		30
+#define POL_NAME_LEN	8
 
 #define FL_TERM		0x80
 #define FL_SCHED	0x01
 #define FL_RESCHED	0x02
 
+//function declarations
+void print_help();
+int get_case(char *input, int len);
 
-
+//declare mutex locks
 pthread_mutex_t policy_lock;
 pthread_mutex_t jq_lock;
 
+//declare condition variables
 pthread_cond_t sched_cv;
 pthread_cond_t disp_cv;
 
+//declare flags
 unsigned char sched_flags=0;
 unsigned char disp_flags=0;
 
-int terminate=0;
 int test=0;
 
 char *policy;
 
-void print_help();
-int get_case(char *input, int len);
+
 
 /*
  * pops the job at the top of the queue and executes
@@ -46,7 +52,7 @@ void *dispatch_thread(){
 		pthread_mutex_lock(&jq_lock);
 
 		//wait for new job or termination request
-		while (test == 0 && !disp_flags){
+		while (get_qsize() == 0 && !disp_flags){
 			pthread_cond_wait(&disp_cv, &jq_lock);
 		}
 		
@@ -75,7 +81,7 @@ void *scheduler_thread(){
 		pthread_mutex_lock(&jq_lock);
 
 		//wait for job queue to have space
-		while (test == 10 && !sched_flags){
+		while (get_qsize() == JOBQ_MAX_SIZE && !sched_flags){
 			pthread_cond_wait(&sched_cv, &jq_lock);
 		}
 
@@ -117,6 +123,11 @@ int main(int argc, char **argv){
 		return 1;
 	}
 
+
+	//initialize arg structs
+	struct test_args t_args;
+	struct run_args r_args;
+
 	//create and execute threads
 	pthread_t dispatcher, scheduler;
 	int dispatch_res=pthread_create(&dispatcher, NULL, *dispatch_thread, NULL);
@@ -124,10 +135,12 @@ int main(int argc, char **argv){
 
 	//enter the main loop
 	int result;
+	int counted_args;
 	int input_len=50;
 	char input[input_len];
 	printf("\nType \'help\' to show list of commands\n\n");
 	while(1){
+		counted_args=0;
 		printf("aubatch> ");
 		//prompt for input
 		
@@ -181,6 +194,14 @@ int main(int argc, char **argv){
 				break;
 			//test
 			case 5:
+				counted_args=parse_test_args(&t_args, input);
+				printf("counted %d args\n", counted_args);
+				printf("parsed: %s\n", t_args.bench_name);
+				printf("parsed: %s\n", t_args.policy);
+				printf("parsed: %d\n", t_args.num_jobs);
+				printf("parsed: %d\n", t_args.priority);
+				printf("parsed: %d\n", t_args.min_cpu_time);
+				printf("parsed: %d\n", t_args.max_cpu_time);
 				printf("test\n");
 				break;
 			//exit
@@ -193,7 +214,6 @@ int main(int argc, char **argv){
 				pthread_cond_signal(&disp_cv);
 				pthread_cond_signal(&sched_cv);
 
-				pthread_join(dispatcher, NULL);
 				pthread_join(scheduler, NULL);
 				free_jobq();
 				print_jobq();
@@ -269,5 +289,3 @@ int get_case(char *input, int len){
 	}
 	
 }
-
-
