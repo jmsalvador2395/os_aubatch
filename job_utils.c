@@ -15,7 +15,8 @@ int qhead=0;
 int qtail=0;
 
 //job queue
-struct job *jobq[QUEUE_LEN];
+struct job *jobq[JOBQ_MAX_SIZE];
+
 
 /*
  * creates job based on given parameters and pushes it into the job queue
@@ -40,7 +41,7 @@ int createq_job(char *job_name, int exec_time, int priority){
 }
 
 int pushq_job(struct job *new_job){
-	if (qsize == QUEUE_LEN){
+	if (qsize == JOBQ_MAX_SIZE){
 		return 0;
 	}
 	if (qsize == 0){
@@ -48,7 +49,7 @@ int pushq_job(struct job *new_job){
 		qhead=qtail;
 	}
 	else{
-		qtail=(qtail+1)%QUEUE_LEN;
+		qtail=(qtail+1)%JOBQ_MAX_SIZE;
 		jobq[qtail]=new_job;
 	}
 
@@ -77,7 +78,7 @@ struct job* popq_job(){
 	jobq[qhead]=NULL;
 
 	//update queue parameters
-	qhead=(qhead+1)%QUEUE_LEN;
+	qhead=(qhead+1)%JOBQ_MAX_SIZE;
 	qsize--;
 
 	return temp;
@@ -113,7 +114,7 @@ void print_jobq(){
 		printf("\n");
 		while (i != qtail){
 			printf("%s\n", jobq[qhead]->job_name);
-			i=(i+1)%QUEUE_LEN;
+			i=(i+1)%JOBQ_MAX_SIZE;
 		}
 		printf("%s\n", jobq[qtail]->job_name);
 		printf("\n");
@@ -134,10 +135,15 @@ void free_jobq(){
 	else{
 		while (i != qtail){
 			free(jobq[i]);
-			i=(i+1)%QUEUE_LEN;
+			i=(i+1)%JOBQ_MAX_SIZE;
 			qsize--;
 		}
 		free(jobq[qtail]);
 		qsize--;
 	}
 }
+
+int get_qsize(){
+	return qsize;
+}
+

@@ -1,7 +1,7 @@
 #ifndef JOB_UTILS_H
 #define JOB_UTILS_H
 
-#define QUEUE_LEN 64
+#define JOBQ_MAX_SIZE 64
 struct job{
 
 	char job_name[30];
@@ -21,12 +21,13 @@ struct job_vertex{
 
 int queue_size;
 int list_size;
-struct job *jobq[QUEUE_LEN];
+struct job *jobq[JOBQ_MAX_SIZE];
 int createq_job(char *job_name, int exec_time, int priority);
 int pushq_job(struct job *new_job);
 struct job* popq_job();
 void reschedule_jobs(char *alg);
 void print_jobq();
 void free_jobq();
+int get_qsize();
 
 #endif
