@@ -112,11 +112,19 @@ struct job* popq_job(){
 /*
  * TODO
  */
-void reschedule_jobs(char *alg){
+void reschedule_jobs(int policy_id){
+	if (qsize <= 1){
+		return;
+	}
+	else{
+		return;
+	}
 
-	printf("rescheduling %s\n", alg);
+
+	
 	return;
 }
+
 
 void print_jobq(){
 	struct job *jp;

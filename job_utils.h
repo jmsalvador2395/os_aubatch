@@ -28,7 +28,7 @@ struct job *jobq[JOBQ_MAX_SIZE];
 int createq_job(char *job_name, int exec_time, int priority, int policy_id);
 int pushq_job(struct job *new_job, int policy_id);
 struct job* popq_job();
-void reschedule_jobs(char *alg);
+void reschedule_jobs(int policy_id);
 void print_jobq();
 void free_jobq();
 int get_qsize();
