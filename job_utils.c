@@ -14,14 +14,19 @@ int qsize=0;
 int qhead=0;
 int qtail=0;
 
+
 //job queue
 struct job *jobq[JOBQ_MAX_SIZE];
+
+//policy variables
+int jpol_id=0;
+char *pol_dict[3] = {"fcfs", "sjf", "priority"};
 
 
 /*
  * creates job based on given parameters and pushes it into the job queue
  */
-int createq_job(char *job_name, int exec_time, int priority){
+int createq_job(char *job_name, int exec_time, int priority, int policy_id){
 
 	struct job *new_job;
 	
@@ -36,11 +41,14 @@ int createq_job(char *job_name, int exec_time, int priority){
 	new_job->status=0;
 
 	//push job into queue
-	pushq_job(new_job);
+	pushq_job(new_job, policy_id);
 	return 0;
 }
 
-int pushq_job(struct job *new_job){
+/*
+ *	pushes the job into the job queue based off its priority
+ */
+int pushq_job(struct job *new_job, int policy_id){
 	if (qsize == JOBQ_MAX_SIZE){
 		return 0;
 	}
@@ -93,30 +101,33 @@ void reschedule_jobs(char *alg){
 	return;
 }
 
-/*
-strcpy(new_job->job_name, job_name);
-new_job->exec_time=exec_time;
-new_job->priority=priority;
-new_job->arrival_time=time(NULL);
-new_job->status=0;
-*/
-
-
 void print_jobq(){
+	struct job *jp;
 	if (qsize == 0){
-		printf("No jobs to display\n");
+		printf("\n");
 	}
 	else if (qsize == 1){
-		printf("\n%s\n", jobq[qhead]->job_name);
+		jp=jobq[qhead];
+		printf("%s\t\t%d\t\t%d\t%ld\t\t%s",
+					jp->job_name,
+					jp->exec_time,
+					jp->priority,
+					jp->arrival_time,
+					"run");
 	}
 	else{
 		int i=qhead;
-		printf("\n");
-		while (i != qtail){
-			printf("%s\n", jobq[qhead]->job_name);
+		while (i != (qtail+1)%JOBQ_MAX_SIZE){
+			jp=jobq[i];
+
+			printf("%s\t\t%d\t\t%d\t%s",
+						jp->job_name,
+						jp->exec_time,
+						jp->priority,
+						asctime(localtime(&jp->arrival_time)));
+
 			i=(i+1)%JOBQ_MAX_SIZE;
 		}
-		printf("%s\n", jobq[qtail]->job_name);
 		printf("\n");
 	}
 }

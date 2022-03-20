@@ -5,6 +5,7 @@
 #define POL_NAME_LEN	8
 #define MIN_CPU_TM		3
 #define MAX_CPU_TM		4
+#define DEF_PRIORITY	0
 
 struct test_args{
 	char bench_name[NAME_LEN];

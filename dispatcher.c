@@ -7,20 +7,20 @@
 #include <string.h>
 
 #include "dispatcher.h"
+#include "utilities.h"
 
-void *dispatch(void *time){
+void dispatch(int time){
+	int time_str_size=10;
+	char time_str[time_str_size];
+	itoa(time, time_str, time_str_size);
 
 	char *args[3];
 	args[0]="batch_job";
-	args[1]="2";
+	args[1]=time_str;
 	args[2]=NULL;
 
-	int tm=(long) time;
-
-	//printf("%d\n", tm);
 
 	pid_t pid;
-
 	pid=fork();
 
 	//check for failed fork
@@ -31,7 +31,6 @@ void *dispatch(void *time){
 
 	//goes in here for child process
 	if(pid == 0){
-		printf("dispatching...\n");
 		execv("batch_job", args);
 		//goes here if execv fails
 		fprintf(stderr, "execv() failure\n");
