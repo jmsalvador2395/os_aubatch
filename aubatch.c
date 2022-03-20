@@ -71,6 +71,7 @@ void *dispatch_thread(){
 			break;
 		}
 
+
 		//access job queue
 		pthread_mutex_lock(&jp_lock);
 		jp=popq_job();
