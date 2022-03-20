@@ -32,5 +32,6 @@ void reschedule_jobs(char *alg);
 void print_jobq();
 void free_jobq();
 int get_qsize();
+int less_than(struct job *j1, struct job *j2, int policy_id);
 
 #endif

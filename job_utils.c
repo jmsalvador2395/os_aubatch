@@ -56,14 +56,30 @@ int pushq_job(struct job *new_job, int policy_id){
 	if (qsize == 0){
 		jobq[qtail]=new_job;
 		qhead=qtail;
+		qsize++;
+		return 1;
 	}
 	else{
-		qtail=(qtail+1)%JOBQ_MAX_SIZE;
-		jobq[qtail]=new_job;
+		int i, count;
+		count=0;
+		struct job *temp1;
+		struct job *temp2;
+		temp1=new_job;
+		i=qhead;
+		while (count < qsize){
+			if (less_than(temp1, jobq[i], policy_id)){
+				temp2=jobq[i];
+				jobq[i]=temp1;
+				temp1=temp2;
+			}
+			i=(i+1)%JOBQ_MAX_SIZE;
+			count++;
+		}
+		jobq[i]=temp1;
+		qtail=i;
+		qsize++;
+		return 1;
 	}
-
-	qsize++;
-	return 1;
 }
 
 
@@ -107,15 +123,6 @@ void print_jobq(){
 	if (qsize == 0){
 		printf("\n");
 	}
-	else if (qsize == 1){
-		jp=jobq[qhead];
-		printf("%s\t\t%d\t\t%d\t%ld\t\t%s",
-					jp->job_name,
-					jp->exec_time,
-					jp->priority,
-					jp->arrival_time,
-					"run");
-	}
 	else{
 		int i=qhead;
 		while (i != (qtail+1)%JOBQ_MAX_SIZE){
@@ -157,5 +164,17 @@ void free_jobq(){
 
 int get_qsize(){
 	return qsize;
+}
+
+int less_than(struct job *j1, struct job *j2, int policy_id){
+	if (policy_id == 0){
+		return (j1->arrival_time < j2->arrival_time);
+	}
+	else if (policy_id == 1){
+		return (j1->exec_time < j2->exec_time);
+	}
+	else if (policy_id == 2){
+		return (j1->priority < j2->priority);
+	}
 }
 
