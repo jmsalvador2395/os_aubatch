@@ -46,7 +46,8 @@ int createq_job(char *job_name, int exec_time, int priority, int policy_id){
 }
 
 /*
- *	pushes the job into the job queue based off its priority
+ * TODO
+ * pushes the job into the job queue based off its priority
  */
 int pushq_job(struct job *new_job, int policy_id){
 	if (qsize == JOBQ_MAX_SIZE){
