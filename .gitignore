@@ -1,3 +1,7 @@
 *.o
 aubatch
 batch_job
+*.script
+*.pdf
+*.txt
+
