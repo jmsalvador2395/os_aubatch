@@ -9,7 +9,8 @@ struct job{
 	char job_name[30];
 	int exec_time;
 	int priority;
-	time_t arrival_time;
+	time_t arrival_date;
+	struct timeval arrival_time;
 	int status;
 	
 };
@@ -33,5 +34,10 @@ void print_jobq();
 void free_jobq();
 int get_qsize();
 int less_than(struct job *j1, struct job *j2, int policy_id);
+int greater_than(struct job *j1, struct job *j2, int policy_id);
+void jq_print_seq();
+double ms_time_diff(struct timeval *t1, struct timeval *t2);
+int wait_time(int placement);
+	
 
 #endif

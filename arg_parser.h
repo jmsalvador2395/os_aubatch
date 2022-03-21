@@ -25,5 +25,9 @@ struct run_args{
 
 int parse_test_args(struct test_args *t_args, char *input);
 int parse_run_args(struct run_args *r_args, char *input);
-
+int test_args_ok(int argc, struct test_args t_args);
+int get_case(char *input, int len);
+void print_help();
+int valid_scheduling(char *policy);
+int get_policy_id(char *c);
 #endif
